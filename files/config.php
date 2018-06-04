@@ -5,7 +5,7 @@ $CONFIG = array (
   'trusted_domains' =>
   array (
     0 => 'localhost',
-    1 => '${aws_eip}',
+    1 => '*',
   ),
   'overwrite.cli.url' => 'http://localhost',
   'dbtype' => 'mysql',

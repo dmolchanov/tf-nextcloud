@@ -8,28 +8,26 @@ resource "aws_instance" "example" {
   ami           = "${lookup(var.images, var.region)}"
   instance_type = "t2.micro"
   key_name      = "main"
-  depends_on    = [ "aws_key_pair.main", "aws_db_instance.nextcloud_db", "aws_s3_bucket.ncbucket" ]
-  provisioner "local-exec" {
-    command = "echo ${aws_instance.example.public_ip} > ip_address.txt"
+  depends_on    = [ "aws_key_pair.main", "aws_db_instance.nextcloud_db", "aws_s3_bucket.ncbucket", "data.template_file.nextcloud_config" ]
+  provisioner "file" {
+    connection {
+      type     = "ssh"
+      user     = "ec2-user"
+    }
+    content = "${data.template_file.nextcloud_config.rendered}"
+    destination = "/home/ec2-user/config.php.nc"
   }
   provisioner "remote-exec" {
     connection {
       type     = "ssh"
       user     = "ec2-user"
     }
-    inline = [ "sudo yum -y update", "sudo yum install unzip", "sudo mkdir -p /usr/src/soft", "sudo chown ec2-user /usr/src/soft" ]
+    inline = [
+      "sudo mv /home/ec2-user/config.php.nc /var/www/nextcloud/config/config.php",
+      "sudo chown apache /var/www/nextcloud/config/config.php",
+      "sudo chmod 640 /var/www/nextcloud/config/config.php"
+    ]
   }
-  provisioner "file" {
-    connection {
-      type     = "ssh"
-      user     = "ec2-user"
-    }
-    source = "files/nextcloud-${var.nextcloud_version}.zip"
-    destination = "/usr/src/soft/"
-  }
-  # 2do
-  ## unzip
-  ## place config
 }
 
 resource "aws_db_instance" "nextcloud_db" {
@@ -72,7 +70,7 @@ data "template_file" "nextcloud_config" {
     s3_domain = "${replace("${aws_s3_bucket.ncbucket.bucket_domain_name}","${aws_s3_bucket.ncbucket.id}.","")}" 
     aws_secret = "${var.secret_key}"
     aws_access = "${var.access_key}"
-    aws_eip = "${aws_eip.ip.public_ip}"
+#    aws_eip = "${aws_eip.ip.public_ip}"
     aws_region = "${var.region}"
   }
 }
