@@ -3,7 +3,10 @@
 ## 2dos:
 
 * refactor variables using
-* -switch to prepared ami-image-
+* ~~switch to prepared ami-image~~
 * add ELB
 * add autoscaling group
-* create security group for application rather than default
+* ~~create security group for application rather than default~~
+
+## problems
+* database instance still uses default security group

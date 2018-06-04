@@ -1,14 +1,68 @@
 provider "aws" {
-#  access_key = "${var.access_key}"
-#  secret_key = "${var.secret_key}"
   region     = "${var.region}"
 }
+
+resource "aws_security_group" "nextcloud_sg" {
+  name = "nextcloud_sg"
+  egress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow outbound traffic"
+    from_port = 0
+    to_port = 0
+    protocol = -1
+  }
+  ingress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow http"
+    protocol = "tcp"
+    ipv6_cidr_blocks = [ "::/0" ]
+    from_port = 80
+    to_port = 80
+  }
+  ingress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow https"
+    protocol = "tcp"
+    ipv6_cidr_blocks = [ "::/0" ]
+    from_port = 443
+    to_port = 443
+  }
+  ingress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow ssh"
+    protocol = "tcp"
+    ipv6_cidr_blocks = [ "::/0" ]
+    from_port = 22
+    to_port = 22
+  }
+  ingress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow mysql"
+    protocol = "tcp"
+    ipv6_cidr_blocks = [ "::/0" ]
+    from_port = 3306
+    to_port = 3306
+  }
+  ingress {
+    cidr_blocks = [ "0.0.0.0/0" ]
+    description = "allow icmp"
+    protocol = "icmp"
+    ipv6_cidr_blocks = [ "::/0" ]
+    from_port = 0
+    to_port = 0
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 
 resource "aws_instance" "example" {
   ami           = "${lookup(var.images, var.region)}"
   instance_type = "t2.micro"
   key_name      = "main"
   depends_on    = [ "aws_key_pair.main", "aws_db_instance.nextcloud_db", "aws_s3_bucket.ncbucket", "data.template_file.nextcloud_config" ]
+  security_groups = [ "${aws_security_group.nextcloud_sg.name}" ]
   provisioner "file" {
     connection {
       type     = "ssh"
