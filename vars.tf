@@ -22,3 +22,7 @@ variable "region" {
 variable "images" {
   type = "map"
 }
+variable "version" {
+  type = "string"
+  default = "v1"
+}

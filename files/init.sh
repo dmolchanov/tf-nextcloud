@@ -1,5 +1,7 @@
+#!/bin/bash
+cat >${NXCFG} << ENDDOC
 <?php
-$CONFIG = array (
+\$CONFIG = array (
   'passwordsalt' => '/z54fa37jE5yZxKuX06rar4eRypy+7',
   'secret' => '/FSq30kJi6PZGeg74g4rga8L+myv2K61jgqeVxNEKCgZFgsm',
   'trusted_domains' =>
@@ -35,3 +37,7 @@ $CONFIG = array (
     ),
   ),
 );
+ENDDOC
+chown apache ${NXCFG}
+chmod 640 ${NXCFG}
+
